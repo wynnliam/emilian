@@ -1,5 +1,5 @@
 data State = State String deriving (Show, Eq)
-data Symbol = Symbol Char deriving (Show, Eq)
+data Symbol = Symbol Char | Empty deriving (Show, Eq)
 data Alphabet = Alphabet [Symbol] deriving (Show)
 
 data Transition = Transition Symbol State [State]
@@ -27,3 +27,4 @@ main = do
   putStrLn (show (move t s2 q0))
   putStrLn (show (move t s q1))
   putStrLn (show (move t s2 q1))
+  putStrLn (show (Empty))
