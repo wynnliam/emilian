@@ -20,7 +20,8 @@ move (Transition a s r) b t
 -- From a given a set of states, we want to find every possible state you
 -- can reach from Epsilon transitions alone.
 eClosure :: [State] -> [Transition] -> [State]
-eClosure states transitions = error "Not yet implemented"
+eClosure [] _ = []
+eClosure (t : rest) transitions = error "Not yet implemented"
 
 main = do
   -- Defines the NFDA from page 116 of "Compilers: Principles, Tools, and Techniques"
