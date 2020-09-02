@@ -9,7 +9,7 @@ data Transition = Transition {
       symbol :: Symbol
     , state  :: State
     , moveTo :: [State]
-    }
+    } deriving (Show)
 
 constructState :: String -> State
 constructState name = State name
@@ -28,6 +28,8 @@ eClosure :: [State] -> [Transition] -> [State]
 eClosure [] _ = []
 eClosure (t : rest) transitions = error "Not yet implemented"
 
+searchByState :: [Transition] -> State -> [Transition]
+searchByState ndfa keyState = filter (\tr -> (state tr) == keyState) ndfa
 main = do
   -- Defines the NFDA from page 116 of "Compilers: Principles, Tools, and Techniques"
   -- First, define the alphabet. For now, this is a symbolic step, since we
@@ -50,4 +52,5 @@ main = do
   -- For ease of use, let's put these in a list
   let transitions = [q0_q1, q0_q3, q1_q2, q2_q2, q3_q4, q4_q4]
 
-  putStrLn (show (eClosure [q0] transitions))
+  --putStrLn (show (eClosure [q0] transitions))
+  putStrLn (show (searchByState transitions q0))
