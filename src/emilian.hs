@@ -30,6 +30,10 @@ eClosure (t : rest) transitions = error "Not yet implemented"
 
 searchByState :: [Transition] -> State -> [Transition]
 searchByState ndfa keyState = filter (\tr -> (state tr) == keyState) ndfa
+
+searchBySymbol :: [Transition] -> Symbol -> [Transition]
+searchBySymbol ndfa keySymbol = filter (\tr -> (symbol tr) == keySymbol) ndfa
+
 main = do
   -- Defines the NFDA from page 116 of "Compilers: Principles, Tools, and Techniques"
   -- First, define the alphabet. For now, this is a symbolic step, since we
@@ -53,4 +57,5 @@ main = do
   let transitions = [q0_q1, q0_q3, q1_q2, q2_q2, q3_q4, q4_q4]
 
   --putStrLn (show (eClosure [q0] transitions))
-  putStrLn (show (searchByState transitions q0))
+  --putStrLn (show (searchByState transitions q0))
+  putStrLn (show (searchBySymbol transitions (Symbol 'a')))
