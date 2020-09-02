@@ -4,7 +4,12 @@ data State = State String deriving (Show, Eq)
 data Symbol = Symbol Char | Epsilon deriving (Show, Eq)
 data Alphabet = Alphabet [Symbol] deriving (Show)
 
-data Transition = Transition Symbol State [State]
+--data Transition = Transition Symbol State [State]
+data Transition = Transition {
+      symbol :: Symbol
+    , state  :: State
+    , moveTo :: [State]
+    }
 
 constructState :: String -> State
 constructState name = State name
