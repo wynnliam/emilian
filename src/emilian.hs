@@ -17,26 +17,30 @@ constructState name = State name
 constructAlphabet :: [Char] -> Alphabet
 constructAlphabet chars = Alphabet (map Symbol chars)
 
-move :: Transition -> Symbol -> State -> [State]
-move (Transition a s r) b t
-  | a == b && s == t = r
-  | otherwise = []
-
 -- From a given a set of states, we want to find every possible state you
 -- can reach from Epsilon transitions alone.
 eClosure :: [State] -> [Transition] -> [State]
-eClosure states ndfa = eDFS states ndfa states
+eClosure states transitions = eDFS states transitions states
 
 eDFS :: [State] -> [Transition] -> [State] -> [State]
 eDFS [] _ reached = reached
-eDFS (top : rest)  ndfa reached =
+eDFS (top : rest)  transitions reached =
       -- All transitions that goes from top
-  let statesFromTop = searchByState ndfa top
+  let statesFromTop = searchByState transitions top
       -- All transitons in statesFromTop where transition is epsilon
       epsilonStateTrans = searchBySymbol statesFromTop Epsilon
+      -- Take all states you can reach, combine them into a single
+      -- list, and remove all that are in reached
       epsilonStates = filter (\s -> notElem s reached) (foldl (++) [] (map moveTo epsilonStateTrans))
-  in eDFS (rest ++ epsilonStates) ndfa (reached ++ epsilonStates)
-      
+  in eDFS (rest ++ epsilonStates) transitions (reached ++ epsilonStates)
+
+move :: State -> Symbol -> [Transition] -> [State]
+move s a transitions =
+  -- Get all transitions that start from s. From that, get all transitions
+  -- that move on a
+  let relevantTransitions = searchBySymbol (searchByState transitions s) a
+  -- Get the states you reach and combine into a single list
+  in foldl (++) [] (map moveTo relevantTransitions)
 
 searchByState :: [Transition] -> State -> [Transition]
 searchByState ndfa keyState = filter (\tr -> (state tr) == keyState) ndfa
@@ -77,3 +81,6 @@ testNdfa =
 
 main = do
   putStrLn (show (eClosure [(State "5")] testNdfa))
+  putStrLn (show (move (State "2") (Symbol 'a') testNdfa))
+  putStrLn (show (move (State "2") (Symbol 'b') testNdfa))
+  putStrLn (show (move (State "4") (Symbol 'b') testNdfa))
