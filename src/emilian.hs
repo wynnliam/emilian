@@ -25,8 +25,18 @@ move (Transition a s r) b t
 -- From a given a set of states, we want to find every possible state you
 -- can reach from Epsilon transitions alone.
 eClosure :: [State] -> [Transition] -> [State]
-eClosure [] _ = []
-eClosure (t : rest) transitions = error "Not yet implemented"
+eClosure states ndfa = states ++ (eDFS states ndfa [])
+
+eDFS :: [State] -> [Transition] -> [State] -> [State]
+eDFS [] _ reached = reached
+eDFS (top : rest)  ndfa reached =
+      -- All transitions that goes from top
+  let statesFromTop = searchByState ndfa top
+      -- All transitons in statesFromTop where transition is epsilon
+      epsilonStateTrans = searchBySymbol statesFromTop Epsilon
+      epsilonStates = filter (\s -> (elem s reached) == False) (foldl (++) [] (map moveTo epsilonStateTrans))
+  in eDFS rest ndfa (reached ++ epsilonStates)
+      
 
 searchByState :: [Transition] -> State -> [Transition]
 searchByState ndfa keyState = filter (\tr -> (state tr) == keyState) ndfa
@@ -56,6 +66,6 @@ main = do
   -- For ease of use, let's put these in a list
   let transitions = [q0_q1, q0_q3, q1_q2, q2_q2, q3_q4, q4_q4]
 
-  --putStrLn (show (eClosure [q0] transitions))
+  putStrLn (show (eClosure [q0] transitions))
   --putStrLn (show (searchByState transitions q0))
-  putStrLn (show (searchBySymbol transitions (Symbol 'a')))
+  --putStrLn (show (searchBySymbol transitions (Symbol 'a')))
