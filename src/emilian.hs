@@ -102,4 +102,4 @@ testNdfa =
     in NDFA start transitions accepting
 
 main = do
-  putStrLn (show testNdfa)
+  putStrLn (show (acceptance [(State "10"), (State "0")] (finalStates testNdfa)))
