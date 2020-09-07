@@ -64,6 +64,7 @@ acceptance currStates finalStates =
   -- then apply or to that list of boolean values.
   in or mapOfCurrsInFinal
 
+testNdfa :: NDFA
 testNdfa =
   -- This ndfa is from the book "Compilers: Principles, Techniques, and Tools"
   -- on page 120
@@ -92,13 +93,13 @@ testNdfa =
       s7_to_s8 = Transition (Symbol 'a') s7 [s8]
       s8_to_s9 = Transition (Symbol 'b') s8 [s9]
       s9_to_s10 = Transition (Symbol 'b') s9 [s10]
-  in [s0_to_s1, s0_to_s7, s1_to_s2, s1_to_s4,
-      s2_to_s3, s3_to_s6, s4_to_s5, s5_to_s6,
-      s6_to_s1, s6_to_s7, s7_to_s8, s8_to_s9,
-      s9_to_s10]
+      transitions = [s0_to_s1, s0_to_s7, s1_to_s2, s1_to_s4,
+                     s2_to_s3, s3_to_s6, s4_to_s5, s5_to_s6,
+                     s6_to_s1, s6_to_s7, s7_to_s8, s8_to_s9,
+                     s9_to_s10]
+      start = s0
+      accepting = [s10]
+    in NDFA start transitions accepting
 
 main = do
-  putStrLn (show (eClosure [(State "5")] testNdfa))
-  putStrLn (show (move (State "2") (Symbol 'a') testNdfa))
-  putStrLn (show (move (State "2") (Symbol 'b') testNdfa))
-  putStrLn (show (move (State "4") (Symbol 'b') testNdfa))
+  putStrLn (show testNdfa)
