@@ -25,6 +25,20 @@ data Regex =   Singleton Symbol -- Denotes a single symbol, or empty
              | Star Regex -- Denotes r*
              deriving (Show)
 
+ndfaFromRegex :: Regex -> NDFA
+ndfaFromRegex regex = fst (ndfaFromRegexStep regex 0)
+
+-- The integer is a global counter for the number of states.
+-- We can use it to generate unique names for other states.
+-- We want to return the modified counter value so we can
+-- keep track of it for subsequent state constructions
+ndfaFromRegexStep :: Regex -> Integer -> (NDFA, Integer)
+ndfaFromRegexStep (Singleton symbol) counter =
+  let start = State (show counter)
+      end = State (show (counter + 1))
+      result = NDFA start [(Transition symbol start [end])] [end]
+  in (result, counter + 1)
+
 constructState :: String -> State
 constructState name = State name
 
@@ -126,8 +140,9 @@ testNdfa =
     in NDFA start transitions accepting
 
 main = do
-  putStrLn (show (acceptance [(State "10"), (State "0")] (finalStates testNdfa)))
-  let str  = [(Symbol 'a'), (Symbol 'b'), (Symbol 'b')]
-  let str1 = [(Symbol 'a'), (Symbol 'b'), (Symbol 'b'), (Symbol 'b')]
-  putStrLn (show (verify str testNdfa))
-  putStrLn (show (verify str1 testNdfa))
+  let lingo = Singleton Epsilon
+  let automata = ndfaFromRegex lingo
+  putStrLn (show automata)
+  putStrLn (show (verify [(Symbol 'a')] automata))
+  putStrLn (show (verify [(Symbol 'a'), (Symbol 'a')] automata))
+  putStrLn (show (verify [Epsilon] automata))
