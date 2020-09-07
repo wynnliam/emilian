@@ -18,6 +18,13 @@ data NDFA = NDFA {
     , finalStates :: [State]
     } deriving (Show)
 
+-- Definition of a regular expression
+data Regex =   Singleton Symbol -- Denotes a single symbol, or empty
+             | Union Regex Regex -- Denotes r | s
+             | Concat Regex Regex -- Denotes rs
+             | Star Regex -- Denotes r*
+             deriving (Show)
+
 constructState :: String -> State
 constructState name = State name
 
