@@ -48,6 +48,15 @@ searchByState ndfa keyState = filter (\tr -> (state tr) == keyState) ndfa
 searchBySymbol :: [Transition] -> Symbol -> [Transition]
 searchBySymbol ndfa keySymbol = filter (\tr -> (symbol tr) == keySymbol) ndfa
 
+-- Given a set of states, we determine if any are an acceptance state
+acceptance :: [State] -> [State] -> Bool
+acceptance currStates finalStates =
+  -- For each state in currState, determine if the state in in finalStates.
+  -- this creates a list of boolean values
+  let mapOfCurrsInFinal = foldr (\curr -> \searched -> searched ++ [(elem curr finalStates)]) [] currStates
+  -- then apply or to that list of boolean values.
+  in or mapOfCurrsInFinal
+
 testNdfa =
   -- This ndfa is from the book "Compilers: Principles, Techniques, and Tools"
   -- on page 120
