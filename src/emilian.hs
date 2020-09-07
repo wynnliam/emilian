@@ -41,8 +41,14 @@ eDFS (top : rest)  transitions reached =
       epsilonStates = filter (\s -> notElem s reached) (foldl (++) [] (map moveTo epsilonStateTrans))
   in eDFS (rest ++ epsilonStates) transitions (reached ++ epsilonStates)
 
-move :: State -> Symbol -> [Transition] -> [State]
-move s a transitions =
+move :: [State] -> Symbol -> [Transition] -> [State]
+move [] _ _ = []
+move (s : ss) a transitions =
+  let moveResult = moveStep s a transitions
+  in moveResult ++ (move ss a transitions)
+
+moveStep :: State -> Symbol -> [Transition] -> [State]
+moveStep s a transitions =
   -- Get all transitions that start from s. From that, get all transitions
   -- that move on a
   let relevantTransitions = searchBySymbol (searchByState transitions s) a
@@ -63,6 +69,17 @@ acceptance currStates finalStates =
   let mapOfCurrsInFinal = foldr (\curr -> \searched -> searched ++ [(elem curr finalStates)]) [] currStates
   -- then apply or to that list of boolean values.
   in or mapOfCurrsInFinal
+
+verify :: [Symbol] -> NDFA -> Bool
+verify str automata =
+  let currStates = eClosure [(start automata)] (transitions automata)
+  in verifyStep str currStates automata
+
+verifyStep :: [Symbol] -> [State] -> NDFA -> Bool
+verifyStep [] currStates automata = acceptance currStates (finalStates automata)
+verifyStep (x : xs) currStates automata =
+  let currStates' = eClosure (move currStates x (transitions automata)) (transitions automata)
+  in verifyStep xs currStates' automata
 
 testNdfa :: NDFA
 testNdfa =
@@ -103,3 +120,7 @@ testNdfa =
 
 main = do
   putStrLn (show (acceptance [(State "10"), (State "0")] (finalStates testNdfa)))
+  let str  = [(Symbol 'a'), (Symbol 'b'), (Symbol 'b')]
+  let str1 = [(Symbol 'a'), (Symbol 'b'), (Symbol 'b'), (Symbol 'b')]
+  putStrLn (show (verify str testNdfa))
+  putStrLn (show (verify str1 testNdfa))
