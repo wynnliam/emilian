@@ -11,6 +11,13 @@ data Transition = Transition {
     , moveTo :: [State]
     } deriving (Show)
 
+-- Definition of a Nondeterministic Finite Automata
+data NDFA = NDFA {
+      start :: State
+    , transitions :: [Transition]
+    , finalStates :: [State]
+    } deriving (Show)
+
 constructState :: String -> State
 constructState name = State name
 
