@@ -49,6 +49,8 @@ searchBySymbol :: [Transition] -> Symbol -> [Transition]
 searchBySymbol ndfa keySymbol = filter (\tr -> (symbol tr) == keySymbol) ndfa
 
 testNdfa =
+  -- This ndfa is from the book "Compilers: Principles, Techniques, and Tools"
+  -- on page 120
   let s0 = State "0"
       s1 = State "1"
       s2 = State "2"
