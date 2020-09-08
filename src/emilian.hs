@@ -34,10 +34,35 @@ ndfaFromRegex regex = fst (ndfaFromRegexStep regex 0)
 -- keep track of it for subsequent state constructions
 ndfaFromRegexStep :: Regex -> Integer -> (NDFA, Integer)
 ndfaFromRegexStep (Singleton symbol) counter =
-  let start = State (show counter)
-      end = State (show (counter + 1))
+  let start = State (show (counter + 1))
+      end = State (show (counter + 2))
       result = NDFA start [(Transition symbol start [end])] [end]
-  in (result, counter + 1)
+  in (result, counter + 2)
+
+ndfaFromRegexStep (Union r s) counter =
+      -- Construct the sub-ndfa for r
+  let resultr = ndfaFromRegexStep r counter
+      -- Construct the sub-ndfa for s
+      results = ndfaFromRegexStep s (snd resultr)
+      -- Construct the new states we will add
+      counter' = (snd results) + 1
+      startState = State (show counter')
+      end = State (show (counter' + 1))
+      -- Now construct the transitions we will need for final ndfa
+      -- Get the final states from each ndfa. Note there is only one.
+      finalr = head (finalStates (fst resultr))
+      finals = head (finalStates (fst results))
+      transEnd1 = Transition Epsilon finalr [end]
+      transEnd2 = Transition Epsilon finals [end]
+      -- Now construct the new start transitions
+      transStart1 = Transition Epsilon startState [(start (fst resultr))]
+      transStart2 = Transition Epsilon startState [(start (fst results))]
+      -- For convenience, we will grab the transitions in each sub ndfa
+      transr = transitions (fst resultr)
+      transs = transitions (fst results)
+      -- Now build the resulting NDFA
+      result = NDFA startState ([transStart1, transStart2, transEnd1, transEnd2] ++ transr ++ transs) [end]
+  in (result, counter' + 1)
 
 constructState :: String -> State
 constructState name = State name
@@ -140,8 +165,14 @@ testNdfa =
     in NDFA start transitions accepting
 
 main = do
-  let lingo = Singleton Epsilon
+  let lingo = Union (Singleton (Symbol 'a')) (Singleton Epsilon)
   let automata = ndfaFromRegex lingo
+ -- let automata = NDFA (State "0") [(Transition Epsilon (State "0") [(State "1"), (State "3")]),
+ --                                  (Transition (Symbol 'a') (State "1") [(State "2")]),
+ --                                  (Transition Epsilon (State "3") [(State "4")]),
+ --                                  (Transition Epsilon (State "2") [(State "f")]),
+ --                                  (Transition Epsilon (State "4") [(State "f")])]
+ --                     [(State "f")]
   putStrLn (show automata)
   putStrLn (show (verify [(Symbol 'a')] automata))
   putStrLn (show (verify [(Symbol 'a'), (Symbol 'a')] automata))
