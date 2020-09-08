@@ -64,6 +64,15 @@ ndfaFromRegexStep (Union r s) counter =
       result = NDFA startState ([transStart1, transStart2, transEnd1, transEnd2] ++ transr ++ transs) [end]
   in (result, counter' + 1)
 
+ndfaFromRegexStep (Concat r s) counter =
+  let resultr = ndfaFromRegexStep r counter
+      results = ndfaFromRegexStep s (snd resultr)
+      -- Now we add an epsilon transition from the final state of r to start of s
+      connect = Transition Epsilon ((head.finalStates.fst) resultr) [((start.fst) results)]
+      -- Now we can build our NDFA
+      result = NDFA ((start.fst) resultr) ([connect] ++ ((transitions.fst) resultr) ++ ((transitions.fst) results)) ((finalStates.fst) results)
+  in (result, (snd results))
+
 constructState :: String -> State
 constructState name = State name
 
@@ -165,7 +174,8 @@ testNdfa =
     in NDFA start transitions accepting
 
 main = do
-  let lingo = Union (Singleton (Symbol 'a')) (Singleton Epsilon)
+  --let lingo = Union (Singleton (Symbol 'a')) (Singleton Epsilon)
+  let lingo = Concat (Singleton (Symbol 'a')) (Singleton (Symbol 'b'))
   let automata = ndfaFromRegex lingo
  -- let automata = NDFA (State "0") [(Transition Epsilon (State "0") [(State "1"), (State "3")]),
  --                                  (Transition (Symbol 'a') (State "1") [(State "2")]),
@@ -175,5 +185,5 @@ main = do
  --                     [(State "f")]
   putStrLn (show automata)
   putStrLn (show (verify [(Symbol 'a')] automata))
-  putStrLn (show (verify [(Symbol 'a'), (Symbol 'a')] automata))
+  putStrLn (show (verify [(Symbol 'a'), (Symbol 'b')] automata))
   putStrLn (show (verify [Epsilon] automata))
