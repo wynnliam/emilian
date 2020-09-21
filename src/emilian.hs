@@ -32,7 +32,7 @@ data LexerType = SymUnion
                | Letter Char
                | Done
                | Error
-               deriving (Show)
+               deriving (Show, Eq)
 
 ndfaFromRegex :: Regex -> NDFA
 ndfaFromRegex regex = fst (ndfaFromRegexStep regex 0)
@@ -205,6 +205,10 @@ lexan (x : xs)
   | isAlphaNum x == True = (xs, Letter x)
   | otherwise = ([], Error)
 
+match :: ([Char], LexerType, LexerType) -> ([Char], LexerType)
+match (buffer, token, lookahead)
+  | token == lookahead = lexan buffer
+  | otherwise = ([], Error)
 
 main = do
   --let lingo = Union (Singleton (Symbol 'a')) (Singleton Epsilon)
