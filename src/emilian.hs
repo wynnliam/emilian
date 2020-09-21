@@ -25,6 +25,8 @@ data Regex =   Singleton Symbol -- Denotes a single symbol, or empty
              | Star Regex -- Denotes r*
              deriving (Show)
 
+data LexerType = SymUnion | SymStar | OpenParen | CloseParen | Letter Char
+
 ndfaFromRegex :: Regex -> NDFA
 ndfaFromRegex regex = fst (ndfaFromRegexStep regex 0)
 
