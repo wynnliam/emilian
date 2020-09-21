@@ -1,5 +1,7 @@
 -- Liam Wynn, 9/2/2020, Emilian
 import Data.Char
+import System.IO ( isEOF )
+
 data State = State String deriving (Show, Eq)
 data Symbol = Symbol Char | Epsilon deriving (Show, Eq)
 data Alphabet = Alphabet [Symbol] deriving (Show)
@@ -25,7 +27,7 @@ data Regex =   Singleton Symbol -- Denotes a single symbol, or empty
              | Star Regex -- Denotes r*
              deriving (Show)
 
-data LexerType = SymUnion
+data Token = SymUnion
                | SymStar 
                | OpenParen 
                | CloseParen
@@ -194,21 +196,33 @@ testNdfa =
     in NDFA start transitions accepting
 
 -- Reads the next input character from a given buffer
-lexan :: [Char] -> ([Char], LexerType)
-lexan [] = ([], Done)
-lexan ('|' : xs) = (xs, SymUnion)
-lexan ('*' : xs) = (xs, SymStar)
-lexan ('(' : xs) = (xs, OpenParen)
-lexan (')' : xs) = (xs, CloseParen)
-lexan (x : xs)
-  | isSpace x == True = lexan xs
-  | isAlphaNum x == True = (xs, Letter x)
-  | otherwise = ([], Error)
+--lexan :: [Char] -> ([Char], Token)
+--lexan [] = ([], Done)
+--lexan ('|' : xs) = (xs, SymUnion)
+--lexan ('*' : xs) = (xs, SymStar)
+--lexan ('(' : xs) = (xs, OpenParen)
+--lexan (')' : xs) = (xs, CloseParen)
+--lexan (x : xs)
+--  | isSpace x == True = lexan xs
+--  | isAlphaNum x == True = (xs, Letter x)
+--  | otherwise = ([], Error)
 
-match :: ([Char], LexerType, LexerType) -> ([Char], LexerType)
-match (buffer, token, lookahead)
-  | token == lookahead = lexan buffer
-  | otherwise = ([], Error)
+lexan :: IO Token
+lexan = getChar >>= (\c -> constructToken c)
+constructToken :: Char -> IO Token
+constructToken '|' = return SymUnion
+constructToken '*' = return SymStar
+constructToken '(' = return OpenParen
+constructToken ')' = return CloseParen
+constructToken x
+  | isSpace x == True = lexan
+  | isAlphaNum x == True = return (Letter x)
+  | otherwise = return Error
+
+match :: Token -> Token -> IO Token
+match token lookahead
+  | token == lookahead = lexan
+  | otherwise = return Error
 
 main = do
   --let lingo = Union (Singleton (Symbol 'a')) (Singleton Epsilon)
