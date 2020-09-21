@@ -1,5 +1,5 @@
 -- Liam Wynn, 9/2/2020, Emilian
-
+import Data.Char
 data State = State String deriving (Show, Eq)
 data Symbol = Symbol Char | Epsilon deriving (Show, Eq)
 data Alphabet = Alphabet [Symbol] deriving (Show)
@@ -25,7 +25,14 @@ data Regex =   Singleton Symbol -- Denotes a single symbol, or empty
              | Star Regex -- Denotes r*
              deriving (Show)
 
-data LexerType = SymUnion | SymStar | OpenParen | CloseParen | Letter Char
+data LexerType = SymUnion
+               | SymStar 
+               | OpenParen 
+               | CloseParen
+               | Letter Char
+               | Done
+               | Error
+               deriving (Show)
 
 ndfaFromRegex :: Regex -> NDFA
 ndfaFromRegex regex = fst (ndfaFromRegexStep regex 0)
@@ -185,6 +192,18 @@ testNdfa =
       start = s0
       accepting = [s10]
     in NDFA start transitions accepting
+
+-- Reads the next input character from a given buffer
+lexan :: [Char] -> ([Char], LexerType)
+lexan [] = ([], Done)
+lexan ('|' : xs) = (xs, SymUnion)
+lexan ('*' : xs) = (xs, SymStar)
+lexan ('(' : xs) = (xs, OpenParen)
+lexan (')' : xs) = (xs, CloseParen)
+lexan (x : xs)
+  | isSpace x == True = lexan xs
+  | isAlphaNum x == True = (xs, Letter x)
+  | otherwise = ([], Error)
 
 main = do
   --let lingo = Union (Singleton (Symbol 'a')) (Singleton Epsilon)
