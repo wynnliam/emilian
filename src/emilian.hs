@@ -205,6 +205,7 @@ lexan (x : xs)
   | isAlphaNum x == True = (xs, Letter x)
   | otherwise = ([], Error)
 
+
 main = do
   --let lingo = Union (Singleton (Symbol 'a')) (Singleton Epsilon)
   let lingo = Star (Singleton (Symbol 'a'))
