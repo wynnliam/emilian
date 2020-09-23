@@ -28,13 +28,12 @@ data Regex =   Singleton Symbol -- Denotes a single symbol, or empty
              deriving (Show)
 
 data Token = SymUnion
-               | SymStar 
-               | OpenParen 
-               | CloseParen
-               | Letter Char
-               | Done
-               | Error
-               deriving (Show, Eq)
+           | SymStar 
+           | OpenParen 
+           | CloseParen
+           | Atom Char
+           | Done
+           deriving (Show, Eq)
 
 data ParseResult = Success Regex | ParseError
 
@@ -197,10 +196,35 @@ testNdfa =
       accepting = [s10]
     in NDFA start transitions accepting
 
-match :: (Token, Token, [Char]) -> Maybe (Token, Token, [Char])
+--data Token = SymUnion
+--           | SymStar 
+--           | OpenParen 
+--           | CloseParen
+--           | Atom Char
+--           | Done
+--           deriving (Show, Eq)
+
+fst' (a, _, _) = a
+snd' (_, b, _) = b
+thd' (_, _, c) = c
+
+lexan :: [Char] -> Maybe (Token, [Char])
+lexan [] =           Just (Done, [])
+lexan ('|' : rest) = Just (SymUnion, rest)
+lexan ('*' : rest) = Just (SymStar, rest)
+lexan ('(' : rest) = Just (OpenParen, rest)
+lexan (')' : rest) = Just (CloseParen, rest)
+lexan (c   : rest) = Just (Atom c, rest)
+
+match :: (Token, Token, [Char]) -> Maybe (Token, [Char])
+-- Match only cares that our token TYPES match, not their contents
+match (Atom a, Atom b, input) = lexan input
 match (token, lookahead, input)
-  | token == lookahead = Just (token, lookahead, input)
+  | token == lookahead = lexan input
   | otherwise = Nothing
+
+atom :: (Token, [Char]) -> Maybe (Token, [Char], Regex)
+atom (Atom a, input) = (match (Atom a, Atom a, input)) >>= (\mr -> Just ((fst mr), (snd mr), (Singleton (Symbol a))))
 
 main = do
   --let lingo = Union (Singleton (Symbol 'a')) (Singleton Epsilon)
