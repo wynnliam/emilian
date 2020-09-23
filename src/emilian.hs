@@ -225,6 +225,9 @@ match (token, lookahead, input)
 
 atom :: (Token, [Char]) -> Maybe (Token, [Char], Regex)
 atom (Atom a, input) = (match (Atom a, Atom a, input)) >>= (\mr -> Just ((fst mr), (snd mr), (Singleton (Symbol a))))
+atom (OpenParen, input) = (match (OpenParen, OpenParen, input)) >>= (\mr -> (atom ((fst mr), (snd mr)))
+                                                                >>= (\er -> Just ((fst' er), (snd' er), (thd' er))))
+atom (_, input) = Nothing
 
 main = do
   --let lingo = Union (Singleton (Symbol 'a')) (Singleton Epsilon)
