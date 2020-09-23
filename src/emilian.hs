@@ -36,6 +36,8 @@ data Token = SymUnion
                | Error
                deriving (Show, Eq)
 
+data ParseResult = Success Regex | ParseError
+
 ndfaFromRegex :: Regex -> NDFA
 ndfaFromRegex regex = fst (ndfaFromRegexStep regex 0)
 
@@ -195,34 +197,10 @@ testNdfa =
       accepting = [s10]
     in NDFA start transitions accepting
 
--- Reads the next input character from a given buffer
---lexan :: [Char] -> ([Char], Token)
---lexan [] = ([], Done)
---lexan ('|' : xs) = (xs, SymUnion)
---lexan ('*' : xs) = (xs, SymStar)
---lexan ('(' : xs) = (xs, OpenParen)
---lexan (')' : xs) = (xs, CloseParen)
---lexan (x : xs)
---  | isSpace x == True = lexan xs
---  | isAlphaNum x == True = (xs, Letter x)
---  | otherwise = ([], Error)
-
-lexan :: IO Token
-lexan = getChar >>= (\c -> constructToken c)
-constructToken :: Char -> IO Token
-constructToken '|' = return SymUnion
-constructToken '*' = return SymStar
-constructToken '(' = return OpenParen
-constructToken ')' = return CloseParen
-constructToken x
-  | isSpace x == True = lexan
-  | isAlphaNum x == True = return (Letter x)
-  | otherwise = return Error
-
-match :: Token -> Token -> IO Token
-match token lookahead
-  | token == lookahead = lexan
-  | otherwise = return Error
+match :: (Token, Token, [Char]) -> Maybe (Token, Token, [Char])
+match (token, lookahead, input)
+  | token == lookahead = Just (token, lookahead, input)
+  | otherwise = Nothing
 
 main = do
   --let lingo = Union (Singleton (Symbol 'a')) (Singleton Epsilon)
