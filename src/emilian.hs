@@ -251,6 +251,7 @@ restOfTerm Nothing = Nothing
 restOfTerm (Just (Done, input, regex)) = Just (Done, input, regex)
 restOfTerm (Just (SymUnion, input, regex)) = Just (SymUnion, input, regex)
 restOfTerm (Just (OpenParen, input, regex)) = Just (OpenParen, input, regex)
+restOfTerm (Just (CloseParen, input, regex)) = Just (CloseParen, input, regex)
 restOfTerm (Just (lookahead, input, regex)) = do
   let termResult = term (lookahead, input)
   case termResult of
