@@ -224,7 +224,7 @@ match (token, lookahead, input)
   | otherwise = Nothing
 
 expr :: (Token, [Char]) -> Maybe (Token, [Char], Regex)
-expr (lookahead, input) = (return (atom (lookahead, input))) >>= restOfExpr
+expr (lookahead, input) = (return (term (lookahead, input))) >>= restOfExpr
 
 restOfExpr :: Maybe (Token, [Char], Regex) -> Maybe (Token, [Char], Regex)
 restOfExpr Nothing = Nothing
@@ -242,6 +242,20 @@ exprUnion :: Maybe (Token, [Char], Regex) -> Regex -> Maybe (Token, [Char], Rege
 exprUnion Nothing _ = Nothing
 -- Otherwise it is the union of the two regexes
 exprUnion (Just (lookahead, input, r)) l = Just (lookahead, input, (Union l r))
+
+term :: (Token, [Char]) -> Maybe (Token, [Char], Regex)
+term (lookahead, input) = (return (atom (lookahead, input))) >>= restOfTerm
+
+restOfTerm :: Maybe (Token, [Char], Regex) -> Maybe (Token, [Char], Regex)
+restOfTerm Nothing = Nothing
+restOfTerm (Just (Done, input, regex)) = Just (Done, input, regex)
+restOfTerm (Just (SymUnion, input, regex)) = Just (SymUnion, input, regex)
+restOfTerm (Just (OpenParen, input, regex)) = Just (OpenParen, input, regex)
+restOfTerm (Just (lookahead, input, regex)) = do
+  let termResult = term (lookahead, input)
+  case termResult of
+    Nothing -> Nothing
+    Just (lookahead', input', regex') -> Just (lookahead', input', (Concat regex regex'))
 
 atom :: (Token, [Char]) -> Maybe (Token, [Char], Regex)
 atom (Atom a, input) = (match (Atom a, Atom a, input)) >>= (\mr -> Just ((fst mr), (snd mr), (Singleton (Symbol a))))
