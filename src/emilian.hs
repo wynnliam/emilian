@@ -228,7 +228,6 @@ expr (lookahead, input) = (return (atom (lookahead, input))) >>= restOfExpr
 
 restOfExpr :: Maybe (Token, [Char], Regex) -> Maybe (Token, [Char], Regex)
 restOfExpr Nothing = Nothing
-restOfExpr (Just (Done, input, regex)) = Just (Done, input, regex)
 restOfExpr (Just (SymUnion, input, regex)) = (match (SymUnion, SymUnion, input))
                                            -- We put the expr result inside a return so that
                                            -- we bind a Maybe result instead of just a result.
@@ -236,6 +235,7 @@ restOfExpr (Just (SymUnion, input, regex)) = (match (SymUnion, SymUnion, input))
                                            -- for that by putting it inside a return.
                                            >>= (\mr -> (return (expr ((fst mr), (snd mr)))
                                            >>= (\er -> exprUnion er regex)))
+restOfExpr (Just (look, input, regex)) = Just (look, input, regex)
 
 exprUnion :: Maybe (Token, [Char], Regex) -> Regex -> Maybe (Token, [Char], Regex)
 -- The second expression failed to parse, so we return nothing
@@ -245,9 +245,17 @@ exprUnion (Just (lookahead, input, r)) l = Just (lookahead, input, (Union l r))
 
 atom :: (Token, [Char]) -> Maybe (Token, [Char], Regex)
 atom (Atom a, input) = (match (Atom a, Atom a, input)) >>= (\mr -> Just ((fst mr), (snd mr), (Singleton (Symbol a))))
-atom (OpenParen, input) = (match (OpenParen, OpenParen, input)) >>= (\mr -> (atom ((fst mr), (snd mr)))
-                                                                >>= (\er -> Just ((fst' er), (snd' er), (thd' er))))
+atom (OpenParen, input) = (match (OpenParen, OpenParen, input)) >>= (\mr -> return (expr ((fst mr), (snd mr)))
+                                                                >>= (\er -> atomExprRes er))--Just ((fst' er), (snd' er), (thd' er))))
 atom (_, input) = Nothing
+
+atomExprRes :: Maybe (Token, [Char], Regex) -> Maybe (Token, [Char], Regex)
+atomExprRes Nothing = Nothing
+atomExprRes (Just (lookahead, input, regex)) = do
+  let matchRes = match (CloseParen, lookahead, input)
+  case matchRes of
+    Nothing -> Nothing
+    Just (lookahead', input') -> Just (lookahead', input', regex)
 
 main = do
   --let lingo = Union (Singleton (Symbol 'a')) (Singleton Epsilon)
