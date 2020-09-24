@@ -244,7 +244,7 @@ exprUnion Nothing _ = Nothing
 exprUnion (Just (lookahead, input, r)) l = Just (lookahead, input, (Union l r))
 
 term :: (Token, [Char]) -> Maybe (Token, [Char], Regex)
-term (lookahead, input) = (return (atom (lookahead, input))) >>= restOfTerm
+term (lookahead, input) = (return (factor (lookahead, input))) >>= restOfTerm
 
 restOfTerm :: Maybe (Token, [Char], Regex) -> Maybe (Token, [Char], Regex)
 restOfTerm Nothing = Nothing
@@ -252,11 +252,18 @@ restOfTerm (Just (Done, input, regex)) = Just (Done, input, regex)
 restOfTerm (Just (SymUnion, input, regex)) = Just (SymUnion, input, regex)
 restOfTerm (Just (OpenParen, input, regex)) = Just (OpenParen, input, regex)
 restOfTerm (Just (CloseParen, input, regex)) = Just (CloseParen, input, regex)
-restOfTerm (Just (lookahead, input, regex)) = do
+restOfTerm (Just (lookahead, input, regex)) = do -- TODO: Clean this up!
   let termResult = term (lookahead, input)
   case termResult of
     Nothing -> Nothing
     Just (lookahead', input', regex') -> Just (lookahead', input', (Concat regex regex'))
+
+factor :: (Token, [Char]) -> Maybe (Token, [Char], Regex)
+factor (lookahead, input) = (return (atom (lookahead, input))) >>= restOfFactor
+restOfFactor :: Maybe (Token, [Char], Regex) -> Maybe (Token, [Char], Regex)
+restOfFactor Nothing = Nothing
+restOfFactor (Just (SymStar, input, regex)) = (match (SymStar, SymStar, input)) >>= (\mr -> Just ((fst mr), (snd mr), (Star regex)))
+restOfFactor (Just (lookahead, input, regex)) = Just (lookahead, input, regex)
 
 atom :: (Token, [Char]) -> Maybe (Token, [Char], Regex)
 atom (Atom a, input) = (match (Atom a, Atom a, input)) >>= (\mr -> Just ((fst mr), (snd mr), (Singleton (Symbol a))))
