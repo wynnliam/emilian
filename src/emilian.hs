@@ -196,17 +196,12 @@ testNdfa =
       accepting = [s10]
     in NDFA start transitions accepting
 
---data Token = SymUnion
---           | SymStar 
---           | OpenParen 
---           | CloseParen
---           | Atom Char
---           | Done
---           deriving (Show, Eq)
-
-fst' (a, _, _) = a
-snd' (_, b, _) = b
-thd' (_, _, c) = c
+parse :: [Char] -> Maybe Regex
+parse input = do
+  let parseResult = (lexan input) >>= expr
+  case parseResult of
+    Nothing -> Nothing
+    Just (_, _, regex) -> Just regex
 
 lexan :: [Char] -> Maybe (Token, [Char])
 lexan [] =           Just (Done, [])
@@ -280,17 +275,32 @@ atomExprRes (Just (lookahead, input, regex)) = do
     Just (lookahead', input') -> Just (lookahead', input', regex)
 
 main = do
+  putStrLn "Please enter a regex."
+  regexStr <- getLine
+  putStrLn "Please enter a string."
+  toVerify <- getLine
+
+  let verifyable = map Symbol toVerify
+
+  let regex = parse regexStr
+  case regex of
+    Nothing -> putStrLn "Bad regex"
+    Just regex -> let automata = ndfaFromRegex regex
+                  in case (verify verifyable automata) of
+                       True -> putStrLn "Yes"
+                       False -> putStrLn "No"
+
   --let lingo = Union (Singleton (Symbol 'a')) (Singleton Epsilon)
-  let lingo = Star (Singleton (Symbol 'a'))
-  let automata = ndfaFromRegex lingo
- -- let automata = NDFA (State "0") [(Transition Epsilon (State "0") [(State "1"), (State "3")]),
- --                                  (Transition (Symbol 'a') (State "1") [(State "2")]),
- --                                  (Transition Epsilon (State "3") [(State "4")]),
- --                                  (Transition Epsilon (State "2") [(State "f")]),
- --                                  (Transition Epsilon (State "4") [(State "f")])]
- --                     [(State "f")]
-  putStrLn (show automata)
-  putStrLn (show (verify [(Symbol 'a')] automata))
-  putStrLn (show (verify [(Symbol 'a'), (Symbol 'b')] automata))
-  putStrLn (show (verify [(Symbol 'a'), (Symbol 'a')] automata))
-  putStrLn (show (verify [Epsilon] automata))
+  --let lingo = Star (Singleton (Symbol 'a'))
+  --let automata = ndfaFromRegex lingo
+ ---- let automata = NDFA (State "0") [(Transition Epsilon (State "0") [(State "1"), (State "3")]),
+ ----                                  (Transition (Symbol 'a') (State "1") [(State "2")]),
+ ----                                  (Transition Epsilon (State "3") [(State "4")]),
+ ----                                  (Transition Epsilon (State "2") [(State "f")]),
+ ----                                  (Transition Epsilon (State "4") [(State "f")])]
+ ----                     [(State "f")]
+  --putStrLn (show automata)
+  --putStrLn (show (verify [(Symbol 'a')] automata))
+  --putStrLn (show (verify [(Symbol 'a'), (Symbol 'b')] automata))
+  --putStrLn (show (verify [(Symbol 'a'), (Symbol 'a')] automata))
+  --putStrLn (show (verify [Epsilon] automata))
