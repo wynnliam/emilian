@@ -289,18 +289,3 @@ main = do
                   in case (verify verifyable automata) of
                        True -> putStrLn "Yes"
                        False -> putStrLn "No"
-
-  --let lingo = Union (Singleton (Symbol 'a')) (Singleton Epsilon)
-  --let lingo = Star (Singleton (Symbol 'a'))
-  --let automata = ndfaFromRegex lingo
- ---- let automata = NDFA (State "0") [(Transition Epsilon (State "0") [(State "1"), (State "3")]),
- ----                                  (Transition (Symbol 'a') (State "1") [(State "2")]),
- ----                                  (Transition Epsilon (State "3") [(State "4")]),
- ----                                  (Transition Epsilon (State "2") [(State "f")]),
- ----                                  (Transition Epsilon (State "4") [(State "f")])]
- ----                     [(State "f")]
-  --putStrLn (show automata)
-  --putStrLn (show (verify [(Symbol 'a')] automata))
-  --putStrLn (show (verify [(Symbol 'a'), (Symbol 'b')] automata))
-  --putStrLn (show (verify [(Symbol 'a'), (Symbol 'a')] automata))
-  --putStrLn (show (verify [Epsilon] automata))
